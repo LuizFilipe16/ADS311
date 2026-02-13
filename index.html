@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRUD Cliente e Produto</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    margin:0;
+    padding:20px;
+    color:#333;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+}
+
+h2{
+    color:white;
+    text-align:center;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+input{
+    width:100%;
+    padding:8px;
+    margin:5px 0 10px 0;
+    border-radius:5px;
+    border:1px solid #ccc;
+}
+
+button{
+    padding:8px 12px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn-primary{ background:#2a5298; color:white; }
+.btn-edit{ background:#ffc107; }
+.btn-delete{ background:#dc3545; color:white; }
+
+table{
+    width:100%;
+    border-collapse: collapse;
+}
+
+th, td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    text-align:center;
+}
+
+th{
+    background:#2a5298;
+    color:white;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h2>Cadastro de Clientes</h2>
+
+<div class="card">
+<form id="clienteForm">
+<input type="hidden" id="clienteIndex">
+<input type="text" id="nome" placeholder="Nome" required>
+<input type="text" id="cpf" placeholder="CPF" required>
+<input type="text" id="identidade" placeholder="Identidade" required>
+<input type="number" id="idade" placeholder="Idade" required>
+<input type="text" id="telefone" placeholder="Telefone" required>
+<button type="submit" class="btn-primary">Salvar Cliente</button>
+</form>
+</div>
+
+<div class="card">
+<table>
+<thead>
+<tr>
+<th>Nome</th>
+<th>CPF</th>
+<th>Identidade</th>
+<th>Idade</th>
+<th>Telefone</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="clienteTable"></tbody>
+</table>
+</div>
+
+<h2>Cadastro de Produtos</h2>
+
+<div class="card">
+<form id="produtoForm">
+<input type="hidden" id="produtoIndex">
+<input type="text" id="codigo" placeholder="Código" required>
+<input type="text" id="descricao" placeholder="Descrição" required>
+<input type="number" id="valor" placeholder="Valor Unitário" step="0.01" required>
+<input type="number" id="quantidade" placeholder="Quantidade em Estoque" required>
+<button type="submit" class="btn-primary">Salvar Produto</button>
+</form>
+</div>
+
+<div class="card">
+<table>
+<thead>
+<tr>
+<th>Código</th>
+<th>Descrição</th>
+<th>Valor</th>
+<th>Quantidade</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="produtoTable"></tbody>
+</table>
+</div>
+
+</div>
+
+<script>
+let clientes = JSON.parse(localStorage.getItem("clientes")) || [];
+let produtos = JSON.parse(localStorage.getItem("produtos")) || [];
+
+function salvarLocalStorage(){
+    localStorage.setItem("clientes", JSON.stringify(clientes));
+    localStorage.setItem("produtos", JSON.stringify(produtos));
+}
+
+function renderClientes(){
+    const table = document.getElementById("clienteTable");
+    table.innerHTML="";
+    clientes.forEach((c,index)=>{
+        table.innerHTML+=`
+        <tr>
+            <td>${c.nome}</td>
+            <td>${c.cpf}</td>
+            <td>${c.identidade}</td>
+            <td>${c.idade}</td>
+            <td>${c.telefone}</td>
+            <td>
+                <button class="btn-edit" onclick="editarCliente(${index})">Editar</button>
+                <button class="btn-delete" onclick="excluirCliente(${index})">Excluir</button>
+            </td>
+        </tr>
+        `;
+    });
+}
+
+function renderProdutos(){
+    const table = document.getElementById("produtoTable");
+    table.innerHTML="";
+    produtos.forEach((p,index)=>{
+        table.innerHTML+=`
+        <tr>
+            <td>${p.codigo}</td>
+            <td>${p.descricao}</td>
+            <td>R$ ${parseFloat(p.valor).toFixed(2)}</td>
+            <td>${p.quantidade}</td>
+            <td>
+                <button class="btn-edit" onclick="editarProduto(${index})">Editar</button>
+                <button class="btn-delete" onclick="excluirProduto(${index})">Excluir</button>
+            </td>
+        </tr>
+        `;
+    });
+}
+
+document.getElementById("clienteForm").addEventListener("submit",function(e){
+    e.preventDefault();
+    const index = document.getElementById("clienteIndex").value;
+
+    const cliente = {
+        nome: nome.value,
+        cpf: cpf.value,
+        identidade: identidade.value,
+        idade: idade.value,
+        telefone: telefone.value
+    };
+
+    if(index===""){
+        clientes.push(cliente);
+    }else{
+        clientes[index]=cliente;
+        document.getElementById("clienteIndex").value="";
+    }
+
+    salvarLocalStorage();
+    renderClientes();
+    this.reset();
+});
+
+function editarCliente(index){
+    const c = clientes[index];
+    nome.value=c.nome;
+    cpf.value=c.cpf;
+    identidade.value=c.identidade;
+    idade.value=c.idade;
+    telefone.value=c.telefone;
+    document.getElementById("clienteIndex").value=index;
+}
+
+function excluirCliente(index){
+    clientes.splice(index,1);
+    salvarLocalStorage();
+    renderClientes();
+}
+
+document.getElementById("produtoForm").addEventListener("submit",function(e){
+    e.preventDefault();
+    const index = document.getElementById("produtoIndex").value;
+
+    const produto = {
+        codigo: codigo.value,
+        descricao: descricao.value,
+        valor: valor.value,
+        quantidade: quantidade.value
+    };
+
+    if(index===""){
+        produtos.push(produto);
+    }else{
+        produtos[index]=produto;
+        document.getElementById("produtoIndex").value="";
+    }
+
+    salvarLocalStorage();
+    renderProdutos();
+    this.reset();
+});
+
+function editarProduto(index){
+    const p = produtos[index];
+    codigo.value=p.codigo;
+    descricao.value=p.descricao;
+    valor.value=p.valor;
+    quantidade.value=p.quantidade;
+    document.getElementById("produtoIndex").value=index;
+}
+
+function excluirProduto(index){
+    produtos.splice(index,1);
+    salvarLocalStorage();
+    renderProdutos();
+}
+
+renderClientes();
+renderProdutos();
+</script>
+
+</body>
+</html>
